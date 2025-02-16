@@ -1,0 +1,28 @@
+{
+  "name": "market-insights-api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "mocha test/**/*.js --timeout 10000 --exit"
+  },
+  "author": "Stephen",
+  "license": "ISC",
+  "description": "API for managing market insights, trading signals, and financial advice.",
+  "devDependencies": {
+    "mocha": "^11.1.0",
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "chai": "^4.3.6",
+    "chai-http": "^4.3.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "intasend-node": "^1.1.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.0",
+    "node-cron": "^3.0.3"
+  }
+}
