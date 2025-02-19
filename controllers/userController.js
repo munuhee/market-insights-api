@@ -59,22 +59,6 @@ exports.getUserByEmail = async (req, res, next) => {
   }
 };
 
-exports.updateSubscriptionStatus = async (req, res, next) => {
-  try {
-    const { userId } = req.params;
-    const { isActive } = req.body;
-    await new Promise((resolve, reject) => {
-      User.updateSubscriptionStatus(userId, isActive, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
-    res.status(200).json({ message: 'Subscription status updated successfully' });
-  } catch (err) {
-    next(err);
-  }
-};
-
 exports.deleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;

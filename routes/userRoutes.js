@@ -9,7 +9,6 @@ router.use(authorize(['admin']));
 router.post('/', userController.createUser);
 router.get('/:id', userController.getUserById);
 router.get('/email/:email', userController.getUserByEmail);
-router.put('/:userId/subscription', userController.updateSubscriptionStatus);
 router.delete('/:id', userController.deleteUser);
 
 module.exports = router;
