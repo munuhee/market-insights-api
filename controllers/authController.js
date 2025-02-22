@@ -1,7 +1,8 @@
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const { JWT_SECRET } = process.env;
+const generateVerificationToken = require('../utils/generateVerificationToken');
+const generateTokenAndSetCookie = require('../utils/generateTokenAndSetCookie');
+const { sendVerificationEmail, sendWelcomeEmail } = require('../utils/mailtrap/emails');
 
 exports.register = async (req, res, next) => {
   try {
@@ -30,25 +31,80 @@ exports.register = async (req, res, next) => {
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, firstName, lastName, email, password: hashedPassword, role });
+
+    // Generate a verification code
+    const verificationToken = generateVerificationToken();
+
+    // Create a new user
+    const newUser = new User({
+      username,
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      role,
+      verificationToken,
+      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+    });
 
     // Save the user to the database
     const user = await newUser.save();
 
-    // Create the JWT token
-    const token = jwt.sign(
-      {
-        id: user._id,
-        email,
-        username,
-        firstName,
-        lastName,
-        role: user.role
-      },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-    res.status(201).json({ token });
+    // jwt
+    generateTokenAndSetCookie(res, user);
+
+    // Send the verification email
+    await sendVerificationEmail(user.email, verificationToken);
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: {
+        ...user._doc,
+        password: undefined
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.verifyEmail = async (req, res, next) => {
+  const { verificationToken } = req.body;
+  try {
+    // Find the user by verification token
+    const user = await User.findOne({ verificationToken });
+
+    if (!user) {
+      const error = new Error('Invalid verification token');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Check if the verification token has expired
+    if (user.verificationTokenExpiresAt < Date.now()) {
+      const error = new Error('Verification token has expired');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Update the user's verification status
+    user.verified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiresAt = undefined;
+
+    // Save the user to the database
+    await user.save();
+
+    await sendWelcomeEmail(user.email, user.username);
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully',
+      user: {
+        ...user._doc,
+        password: undefined
+      }
+     });
   } catch (err) {
     next(err);
   }
