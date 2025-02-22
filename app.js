@@ -4,13 +4,15 @@ require('dotenv').config();
 // Import necessary modules
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 
 // Initialize Express app
 const app = express();
 
 // Middleware
-app.use(bodyParser.json());
+app.use(bodyParser.json()); // for parsing application/json
+app.use(cookieParser()); // for parsing cookies
 
 // Import and run the cron job
 require('./scripts/cronJobs');

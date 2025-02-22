@@ -244,3 +244,16 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
+exports.checkAuth = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(200).json({ success: true, user});
+  } catch (err) {
+    next(err);
+  }
+};
