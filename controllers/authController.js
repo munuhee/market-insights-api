@@ -138,10 +138,29 @@ exports.login = async (req, res, next) => {
       throw error;
     }
 
-    // Sign the token
-    const token = jwt.sign({ id: user._id, username: user.username, email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).json({ token });
+    // Generate and set the token
+    const token = generateTokenAndSetCookie(res, user);
+
+    user.lastLoginAt = new Date();
+    user.lastLoginIp = req.ip;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        ...user._doc,
+        password: undefined
+      },
+      token
+    });
+
   } catch (err) {
     next(err);
   }
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie('token');
+  res.status(200).json({ success: true, message: 'Logged out successfully' });
 };
