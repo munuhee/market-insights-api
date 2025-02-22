@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
   verificationTokenExiresAt: { type: Date },
   lastLoginAt: { type: Date, default: Date.now },
   lastLoginIp: { type: String },
+  passwordResetToken: { type: String },
+  passwordResetTokenExpiresAt: { type: Date },
 }, {
   timestamps: true,
 });
