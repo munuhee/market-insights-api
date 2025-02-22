@@ -14,4 +14,4 @@ const sender = {
   name: "Stephen Murichu",
 };
 
-module.exports = { client, sender };
+module.exports = { mailTrapClient, sender };
