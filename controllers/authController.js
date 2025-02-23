@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
 const User = require('../models/User');
-const generateVerificationToken = require('../utils/generateVerificationToken');
+const generateVerificationCode = require('../utils/generateVerificationCode');
 const generateTokenAndSetCookie = require('../utils/generateTokenAndSetCookie');
 const {
   sendVerificationEmail,
@@ -15,7 +15,7 @@ exports.register = async (req, res, next) => {
   try {
     console.log("Received request body:", req.body); // Debugging log
 
-    const { username, firstName, lastName, email, password, role = 'admin' } = req.body;
+    const { username, firstName, lastName, email, password } = req.body;
 
     if (!username || !firstName || !lastName || !email || !password) {
       return res.status(400).json({ error: 'Username, first name, last name, email, and password are required' });
@@ -40,7 +40,7 @@ exports.register = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate a verification code
-    const verificationToken = generateVerificationToken();
+    const verificationCode = generateVerificationCode();
 
     // Create a new user
     const newUser = new User({
@@ -49,9 +49,9 @@ exports.register = async (req, res, next) => {
       lastName,
       email,
       password: hashedPassword,
-      role,
-      verificationToken,
-      verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+      role : 'free_user',
+      verificationCode,
+      verificationCodeExpiresAt: Date.now() + 0 * 30 * 60 * 1000 // 30 minutes
     });
 
     // Save the user to the database
@@ -61,7 +61,7 @@ exports.register = async (req, res, next) => {
     generateTokenAndSetCookie(res, user);
 
     // Send the verification email
-    await sendVerificationEmail(user.email, verificationToken);
+    await sendVerificationEmail(user.email, verificationCode);
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -76,28 +76,28 @@ exports.register = async (req, res, next) => {
 };
 
 exports.verifyEmail = async (req, res, next) => {
-  const { verificationToken } = req.body;
+  const { verificationCode } = req.body;
   try {
     // Find the user by verification token
-    const user = await User.findOne({ verificationToken });
+    const user = await User.findOne({ verificationCode });
 
     if (!user) {
-      const error = new Error('Invalid verification token');
+      const error = new Error('Invalid verification code');
       error.statusCode = 400;
       throw error;
     }
 
     // Check if the verification token has expired
-    if (user.verificationTokenExpiresAt < Date.now()) {
+    if (user.verificationCodeExpiresAt < Date.now()) {
       const error = new Error('Verification token has expired');
       error.statusCode = 400;
       throw error;
     }
 
     // Update the user's verification status
-    user.verified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpiresAt = undefined;
+    user.isVerified = true;
+    user.verificationCode = undefined;
+    user.verificationCodeExpiresAt = undefined;
 
     // Save the user to the database
     await user.save();
@@ -204,7 +204,8 @@ exports.forgotPassword = async (req, res, next) => {
     await user.save();
 
     // Send the password reset email
-    await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+    const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    await sendPasswordResetEmail(user.email, resetURL);
 
     res.status(200).json({ success: true, message: 'Password reset email sent successfully' });
   } catch (err) {
@@ -214,8 +215,8 @@ exports.forgotPassword = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
   try {
-    const token = req.params;
-    const password = req.body;
+    const { token } = req.params;
+    const { password } = req.body;
 
     // Find the user by password reset token
     const user = await User.findOne({
