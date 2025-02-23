@@ -13,8 +13,6 @@ const {
 
 exports.register = async (req, res, next) => {
   try {
-    console.log("Received request body:", req.body); // Debugging log
-
     const { username, firstName, lastName, email, password } = req.body;
 
     if (!username || !firstName || !lastName || !email || !password) {
