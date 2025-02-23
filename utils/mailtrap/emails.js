@@ -1,14 +1,19 @@
 const { mailTrapClient, sender } = require('./mailtrap');
-const { VERIFICATION_EMAIL_TEMPLATE, SEND_WELCOME_EMAIL_TEMPLATE, PASSWORD_RESET_REQUEST_TEMPLATE } = require('./emailTemplate');
+const {
+    VERIFICATION_EMAIL_TEMPLATE,
+    SEND_WELCOME_EMAIL_TEMPLATE,
+    PASSWORD_RESET_REQUEST_TEMPLATE,
+    PASSWORD_RESET_SUCCESS_TEMPLATE
+} = require('./emailTemplate');
 
-const sendVerificationEmail = async (email, verificationToken) => {
+const sendVerificationEmail = async (email, verificationCode) => {
     const recipient = [{email}];
     try {
         const response = await mailTrapClient.send({
             from: sender,
             to: recipient,
             subject: 'Verify your email',
-            html: VERIFICATION_EMAIL_TEMPLATE.replace("{{verificationCode}}", verificationToken),
+            html: VERIFICATION_EMAIL_TEMPLATE.replace("{verificationCode}", verificationCode),
             category: 'Email Verification',
         })
     } catch (error) {
@@ -20,11 +25,11 @@ const sendVerificationEmail = async (email, verificationToken) => {
 const sendWelcomeEmail = async (email, usename) => {
     const recipient = [{email}];
     try {
-        const response = await mailTrapClient.send({
+        await mailTrapClient.send({
             from: sender,
             to: recipient,
             subject: 'Welcome to our platform',
-            html: SEND_WELCOME_EMAIL_TEMPLATE.replace("{{username}}", usename),
+            html: SEND_WELCOME_EMAIL_TEMPLATE.replace("{username}", usename),
             category: 'Welcome',
         })
     } catch (error) {
@@ -36,11 +41,11 @@ const sendWelcomeEmail = async (email, usename) => {
 const sendPasswordResetEmail = async (email, resetURL) => {
     const recipient = [{email}];
     try {
-        const response = await mailTrapClient.send({
+        await mailTrapClient.send({
             from: sender,
             to: recipient,
             subject: 'Reset your password',
-            html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{{resetURL}}", resetURL),
+            html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetURL),
             category: 'Password Reset',
         })
     } catch (error) {
@@ -49,10 +54,10 @@ const sendPasswordResetEmail = async (email, resetURL) => {
     }
 };
 
-const sendResetSuccessEmail = async (email) => {
+const sendResetSuccessfulEmail = async (email) => {
     const recipient = [{email}];
     try {
-        const response = await mailTrapClient.send({
+        await mailTrapClient.send({
             from: sender,
             to: recipient,
             subject: 'Password reset successful',
@@ -69,5 +74,5 @@ module.exports = {
     sendVerificationEmail,
     sendWelcomeEmail,
     sendPasswordResetEmail,
-    sendResetSuccessEmail
+    sendResetSuccessfulEmail
 };
