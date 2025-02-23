@@ -49,7 +49,7 @@ exports.register = async (req, res, next) => {
       password: hashedPassword,
       role : 'free_user',
       verificationCode,
-      verificationCodeExpiresAt: Date.now() + 0 * 30 * 60 * 1000 // 30 minutes
+      verificationCodeExpiresAt: Date.now() + 30 * 60 * 1000 // 30 minutes
     });
 
     // Save the user to the database
@@ -243,13 +243,15 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
-exports.checkAuth = async (req, res) => {
+exports.checkAuth = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token' });
+    }
+
+    const user = await User.findById(req.user.id).select('-password');
     if (!user) {
-      const error = new Error('User not found');
-      error.statusCode = 404;
-      throw error;
+      return res.status(404).json({ success: false, error: 'User not found in database' });
     }
     res.status(200).json({ success: true, user});
   } catch (err) {

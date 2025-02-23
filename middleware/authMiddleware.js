@@ -25,7 +25,7 @@ exports.authorize = (roles) => {
 };
 
 exports.verifyToken = (req, res, next) => {
-  const token = request.cookies.token;
+  const token = req.cookies.token;
 
   if (!token) {
     return res.status(401).json({ success: false, error: 'No token provided' });
@@ -33,7 +33,7 @@ exports.verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    if (!decoded) {
+    if (!decoded || !decoded.id) {
       return res.status(401).json({ success: false, error: 'Invalid token' });
     }
     req.user = decoded;
