@@ -25,12 +25,7 @@ const generateTokenAndSetCookie = (res, user) => {
         maxAge: 7 * 24 * 60 * 60 * 1000 // cookie expires after 7 days
     });
 
-    res.status(200).json(
-        {
-            success: true,
-            token
-        }
-    )
+    return token;
 };
 
 module.exports = generateTokenAndSetCookie;
