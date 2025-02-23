@@ -4,7 +4,7 @@ dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const generateTokenAndSetCookie = (user, res) => {
+const generateTokenAndSetCookie = (res, user) => {
     const token = jwt.sign(
         {
             id: user._id,
