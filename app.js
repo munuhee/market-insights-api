@@ -4,41 +4,54 @@ require('dotenv').config();
 // Import necessary modules
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require("cors");
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 
 // Initialize Express app
 const app = express();
 
-// Middleware
-app.use(bodyParser.json()); // for parsing application/json
-app.use(cookieParser()); // for parsing cookies
+// Enable CORS for frontend at localhost:3000
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+    credentials: true,
+  })
+);
 
-// Import and run the cron job
+// Middleware
+app.use(bodyParser.json()); // Parse JSON request bodies
+app.use(cookieParser()); // Parse cookies
+
+// Import and run cron jobs
 require('./scripts/cronJobs');
 
 // API version prefix
 const API_VERSION = '/api/v1';
 
 // Import routes
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const subscriptionRoutes = require('./routes/subscriptionRoutes');
-const financialAdviceRoutes = require('./routes/financialAdviceRoutes');
-const ebookRoutes = require('./routes/ebookRoutes');
-const forexSignalRoutes = require('./routes/forexSignalRoutes');
-const fundamentalAnalysisRoutes = require('./routes/fundamentalAnalysisRoutes');
-const sentimentAnalysisRoutes = require('./routes/sentimentAnalysisRoutes');
+const routes = {
+  auth: require('./routes/authRoutes'),
+  users: require('./routes/userRoutes'),
+  subscriptions: require('./routes/subscriptionRoutes'),
+  financialAdvice: require('./routes/financialAdviceRoutes'),
+  ebooks: require('./routes/ebookRoutes'),
+  forexSignals: require('./routes/forexSignalRoutes'),
+  fundamentalAnalysis: require('./routes/fundamentalAnalysisRoutes'),
+  sentimentAnalysis: require('./routes/sentimentAnalysisRoutes'),
+};
 
-// Routes
-app.use(`${API_VERSION}/auth`, authRoutes);
-app.use(`${API_VERSION}/users`, userRoutes);
-app.use(`${API_VERSION}/subscriptions`, subscriptionRoutes);
-app.use(`${API_VERSION}/financial-advice`, financialAdviceRoutes);
-app.use(`${API_VERSION}/ebooks`, ebookRoutes);
-app.use(`${API_VERSION}/forex-signals`, forexSignalRoutes);
-app.use(`${API_VERSION}/fundamental-analysis`, fundamentalAnalysisRoutes);
-app.use(`${API_VERSION}/sentiment-analysis`, sentimentAnalysisRoutes);
+// Register routes
+app.use(`${API_VERSION}/auth`, routes.auth);
+app.use(`${API_VERSION}/users`, routes.users);
+app.use(`${API_VERSION}/subscriptions`, routes.subscriptions);
+app.use(`${API_VERSION}/financial-advice`, routes.financialAdvice);
+app.use(`${API_VERSION}/ebooks`, routes.ebooks);
+app.use(`${API_VERSION}/forex-signals`, routes.forexSignals);
+app.use(`${API_VERSION}/fundamental-analysis`, routes.fundamentalAnalysis);
+app.use(`${API_VERSION}/sentiment-analysis`, routes.sentimentAnalysis);
 
 // Error handling middleware
 const errorHandler = require('./middleware/errorHandler');
