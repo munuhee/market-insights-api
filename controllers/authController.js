@@ -22,16 +22,12 @@ exports.register = async (req, res, next) => {
     // Check if the user already exists
     const existingUserByEmail = await User.findOne({ email });
     if (existingUserByEmail) {
-      const error = new Error('User with this email already exists');
-      error.statusCode = 409;
-      throw error;
+      return res.status(409).json({ error: 'User with this email already exists' });
     }
 
     const existingUserByUsername = await User.findOne({ username });
     if (existingUserByUsername) {
-      const error = new Error('User with this username already exists');
-      error.statusCode = 409;
-      throw error;
+      return res.status(409).json({ error: 'User with this username already exists' });
     }
 
     // Hash the password
@@ -47,7 +43,7 @@ exports.register = async (req, res, next) => {
       lastName,
       email,
       password: hashedPassword,
-      role : 'free_user',
+      role: 'free_user',
       verificationCode,
       verificationCodeExpiresAt: Date.now() + 30 * 60 * 1000 // 30 minutes
     });
@@ -55,19 +51,28 @@ exports.register = async (req, res, next) => {
     // Save the user to the database
     const user = await newUser.save();
 
-    // jwt
+    // Generate JWT and set cookie
     generateTokenAndSetCookie(res, user);
 
-    // Send the verification email
-    await sendVerificationEmail(user.email, verificationCode);
+    // Attempt to send the verification email
+    let emailSent = true;
+    try {
+      await sendVerificationEmail(user.email, verificationCode);
+    } catch (emailError) {
+      emailSent = false;
+      console.error('Failed to send verification email:', emailError);
+    }
 
     res.status(201).json({
       message: 'User registered successfully',
+      emailSent: emailSent,
+      emailMessage: emailSent ? 'Verification email sent' : 'Failed to send verification email',
       user: {
         ...user._doc,
         password: undefined
       }
     });
+
   } catch (err) {
     next(err);
   }
