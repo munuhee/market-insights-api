@@ -58,9 +58,9 @@ exports.register = async (req, res, next) => {
     let emailSent = true;
     try {
       await sendVerificationEmail(user.email, verificationCode);
-    } catch (emailError) {
+    } catch (error) {
       emailSent = false;
-      console.error('Failed to send verification email:', emailError);
+      console.error('Failed to send verification email:', error);
     }
 
     res.status(201).json({
@@ -105,16 +105,25 @@ exports.verifyEmail = async (req, res, next) => {
     // Save the user to the database
     await user.save();
 
-    await sendWelcomeEmail(user.email, user.username);
+     // Attempt to send the verification email
+     let emailSent = true;
+     try {
+       await sendWelcomeEmail(user.email, user.username);
+     } catch (error) {
+       emailSent = false;
+       console.error('Failed to send verification email:', error);
+     }
 
     res.status(200).json({
       success: true,
       message: 'Email verified successfully',
+      emailSent: emailSent,
+      emailMessage: emailSent ? 'Verification email sent' : 'Failed to send verification email',
       user: {
         ...user._doc,
         password: undefined
       }
-     });
+    });
   } catch (err) {
     next(err);
   }
