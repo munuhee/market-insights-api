@@ -46,7 +46,7 @@ const routes = {
 // Register routes
 app.use(`${API_VERSION}/auth`, routes.auth);
 app.use(`${API_VERSION}/users`, routes.users);
-app.use(`${API_VERSION}/subscriptions`, routes.subscriptions);
+app.use(`${API_VERSION}/subscription`, routes.subscriptions);
 app.use(`${API_VERSION}/financial-advice`, routes.financialAdvice);
 app.use(`${API_VERSION}/ebooks`, routes.ebooks);
 app.use(`${API_VERSION}/forex-signals`, routes.forexSignals);

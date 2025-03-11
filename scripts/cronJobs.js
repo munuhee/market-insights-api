@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const Subscription = require('../models/Subscription');
+const { Subscription } = require('../models/Subscription');
 const User = require('../models/User');
 
 // Schedule a task to run every day at midnight
