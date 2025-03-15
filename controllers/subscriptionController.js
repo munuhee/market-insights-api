@@ -97,12 +97,12 @@ exports.deletePlan = async (req, res) => {
 // Create a new subscription (checkout link)
 exports.createSubscription = async (req, res) => {
   try {
-    const { planName } = req.body;
+    const { planId } = req.body;
     const userId = req.user.id;
     const { firstName, lastName, email } = req.user;
 
     // Find the subscription plan from the database
-    const plan = await SubscriptionPlan.findOne({ name: planName });
+    const plan = await SubscriptionPlan.findOne({ id: planId });
     if (!plan) {
       return res.status(400).json({ error: "Invalid subscription plan" });
     }
