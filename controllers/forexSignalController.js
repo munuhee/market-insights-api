@@ -4,7 +4,10 @@ const ForexSignal = require('../models/ForexSignal');
 exports.createForexSignal = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { currencyPair, action, entryPrice, stopLoss, takeProfit, description } = req.body;
+    const { currencyPair, action, entryPrice, stopLoss, takeProfit, description, status } = req.body;
+    if (!currencyPair || !action || !entryPrice || !stopLoss || !takeProfit || !description || !status) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
     const signal = new ForexSignal({
       currencyPair,
       action,
@@ -12,10 +15,17 @@ exports.createForexSignal = async (req, res, next) => {
       stopLoss,
       takeProfit,
       description,
+      status,
       userId
     });
     const savedSignal = await signal.save();
-    res.status(201).json({ message: 'Forex signal created successfully', signalId: savedSignal._id });
+    res.status(201).json({
+      message: 'Forex signal created successfully',
+      signal: {
+        ...savedSignal._doc,
+      },
+    }
+    );
   } catch (err) {
     next(err);
   }

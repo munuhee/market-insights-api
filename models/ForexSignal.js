@@ -7,6 +7,7 @@ const forexSignalSchema = new mongoose.Schema({
   stopLoss: { type: Number, required: true },
   takeProfit: { type: Number, required: true },
   description: { type: String },
+  status: { type: String, enum: ['open', 'closed', 'cancelled'], default: 'open' },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now },
 });
