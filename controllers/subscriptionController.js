@@ -102,7 +102,7 @@ exports.createSubscription = async (req, res) => {
     const { firstName, lastName, email } = req.user;
 
     // Find the subscription plan from the database
-    const plan = await SubscriptionPlan.findOne({ id: planId });
+    const plan = await SubscriptionPlan.findOne({ _id: planId });
     if (!plan) {
       return res.status(400).json({ error: "Invalid subscription plan" });
     }
